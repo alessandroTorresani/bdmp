@@ -10,4 +10,9 @@ public class MyPoint2D extends Point {
 		this.x2 = x2;
 	}
 	
+	public String toString(){
+		String result = "[ " + getId() + ", " + x1 + ", " + x2 + ", " + getProb() + " ]";
+		return result;
+	}
+	
 }
