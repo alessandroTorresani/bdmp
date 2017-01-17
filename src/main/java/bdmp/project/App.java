@@ -13,8 +13,8 @@ public class App
     {
         
     	// Working k-mean algorithm
-        Dataset data = FileHandler.loadDataset(new File("/home/harwin/Documents/input/aa.csv"), 2, ",");
-        int k = 2;
+        Dataset data = FileHandler.loadDataset(new File("input/aa.csv"), 2, ",");
+        int k = 3;
         KMeans km = new KMeans(k);
         Dataset[] clusters = km.cluster(data);
         for (int i=0; i< k; i++){
