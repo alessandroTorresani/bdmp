@@ -1,13 +1,26 @@
 package bdmp.project;
 
-/**
- * Hello world!
- *
- */
+import java.io.File;
+import java.io.IOException;
+import net.sf.javaml.clustering.KMeans;
+import net.sf.javaml.core.Dataset;
+import net.sf.javaml.tools.data.FileHandler;
+
+
 public class App 
 {
-    public static void main( String[] args )
+    public static void main( String[] args ) throws IOException
     {
-        System.out.println( "Hello World!" );
+        
+    	// Working k-mean algorithm
+        Dataset data = FileHandler.loadDataset(new File("/home/harwin/Documents/input/aa.csv"), 2, ",");
+        int k = 2;
+        KMeans km = new KMeans(k);
+        Dataset[] clusters = km.cluster(data);
+        for (int i=0; i< k; i++){
+        	System.out.println(clusters[i]+"\n");
+        }
+        
+        
     }
 }
