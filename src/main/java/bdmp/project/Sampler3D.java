@@ -1,6 +1,5 @@
 package bdmp.project;
 
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
@@ -11,39 +10,38 @@ import java.util.UUID;
 
 import org.apache.commons.math3.distribution.MultivariateNormalDistribution;
 
-public class Sampler2D {		
-	
+public class Sampler3D {
 	public void simpleSample(int num, int min, int max, boolean highDifference) throws FileNotFoundException{ // num is number of samples and the max number of points for each identifier
 		int counter = 0;
 		String id;
 		
-		List<MyPoint2D> points = new ArrayList<MyPoint2D>();
+		List<MyPoint3D> points = new ArrayList<MyPoint3D>();
 		
 		while (counter < num){
 			id = UUID.randomUUID().toString();
-			MyPoint2D p1,p2;
+			MyPoint3D p1,p2;
 			if(highDifference){
-				p1 = new MyPoint2D(id, min + Math.random() * (max - min), min + Math.random() * (max - min), 0.8);
-				p2 = new MyPoint2D(id, min + Math.random() * (max - min), min + Math.random() * (max - min), 0.2);
+				p1 = new MyPoint3D(id, min + Math.random() * (max - min), min + Math.random() * (max - min), min + Math.random() * (max - min), 0.8);
+				p2 = new MyPoint3D(id, min + Math.random() * (max - min), min + Math.random() * (max - min), min + Math.random() * (max - min), 0.2);
 			} else {
-				p1 = new MyPoint2D(id, min + Math.random() * (max - min), min + Math.random() * (max - min), 0.5);
-				p2 = new MyPoint2D(id, min + Math.random() * (max - min), min + Math.random() * (max - min), 0.5);
+				p1 = new MyPoint3D(id, min + Math.random() * (max - min), min + Math.random() * (max - min), min + Math.random() * (max - min), 0.5);
+				p2 = new MyPoint3D(id, min + Math.random() * (max - min), min + Math.random() * (max - min), min + Math.random() * (max - min), 0.5);
 			}
 			points.add(p1);
 			points.add(p2);
 			counter++;
 		}
-		printToFile(points, "simplesample2D.csv");
+		printToFile(points, "simplesample3D.csv");
 	}
 	
 	public void genericSample(int num, int uncertainPointsMax,  int min, int max) throws FileNotFoundException{ // num is number of samples and the max number of points for each identifier
 		int uncertainPoints, counter = 0;
 		String id;
-		List<MyPoint2D> points = new ArrayList<MyPoint2D>();
+		List<MyPoint3D> points = new ArrayList<MyPoint3D>();
 		
 		while (counter < num){
 			id = UUID.randomUUID().toString();
-			MyPoint2D p;
+			MyPoint3D p;
 			
 			// Choose number of uncertain points
 			uncertainPoints = 1 + (int)(Math.random() * uncertainPointsMax);
@@ -52,34 +50,34 @@ public class Sampler2D {
 			System.out.println("before cycle");
 			while (unCounter < uncertainPoints){
 				System.out.println(unCounter);
-				p = new MyPoint2D(id, min + Math.random() * (max - min), min + Math.random() * (max - min), probabilities[unCounter]);
+				p = new MyPoint3D(id, min + Math.random() * (max - min), min + Math.random() * (max - min), min + Math.random() * (max - min), probabilities[unCounter]);
 				points.add(p);
 				unCounter++;
 			}
 			counter++;
 		}
-		printToFile(points, "genericSample2D.csv");
+		printToFile(points, "genericSample3D.csv");
 	}
 	
 	public void gaussianSample(int num, double [] means, double[][] covariances) throws FileNotFoundException{
 		String id;
 		int counter = 0;
 		MultivariateNormalDistribution mnd = new MultivariateNormalDistribution(means, covariances);
-		List<MyPoint2D> points = new ArrayList<MyPoint2D>();
+		List<MyPoint3D> points = new ArrayList<MyPoint3D>();
 		while(counter < num){
 			double[] sample; 
 			id = UUID.randomUUID().toString();
-			MyPoint2D p;
+			MyPoint3D p;
 			double totProb = 0;
 			while (totProb <= 1){ //until prob sum to 1
 				sample = mnd.sample();
-				p = new MyPoint2D(id, sample[0], sample[1], mnd.density(sample));
+				p = new MyPoint3D(id, sample[0], sample[1], sample[2], mnd.density(sample));
 				totProb += mnd.density(sample);
 				points.add(p);
 			}
 			counter++;
 		}
-		printToFile(points, "gaussianSample2D.csv");
+		printToFile(points, "gaussianSample3D.csv");
 		
 	}
 	
@@ -101,16 +99,18 @@ public class Sampler2D {
 		return randNums;
 	}
 	
-	private void printToFile(List<MyPoint2D> points, String filename) throws FileNotFoundException{
+	private void printToFile(List<MyPoint3D> points, String filename) throws FileNotFoundException{
 		PrintWriter pw = new PrintWriter(new File("input/"+filename));
 		StringBuilder sb = new StringBuilder();
 		while(!points.isEmpty()){
-			MyPoint2D p = points.remove(0);
+			MyPoint3D p = points.remove(0);
 			sb.append(p.getId());
 			sb.append(",");
 			sb.append(p.x1);
 			sb.append(",");
 			sb.append(p.x2);
+			sb.append(",");
+			sb.append(p.x3);
 			sb.append(",");
 			sb.append(p.getProb());
 			sb.append("\n");
@@ -118,5 +118,4 @@ public class Sampler2D {
 		pw.write(sb.toString());
 		pw.close();
 	}
-
 }
