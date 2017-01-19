@@ -11,21 +11,22 @@ import java.util.UUID;
 import org.apache.commons.math3.distribution.MultivariateNormalDistribution;
 
 public class Sampler3D {
-	public void simpleSample(int num, int min, int max, boolean highDifference) throws FileNotFoundException{ // num is number of samples and the max number of points for each identifier
-		int counter = 0;
-		String id;
-		
+	// very basic algorithm that generate for each sample two uncertain points in range (minValue,maxValue) with high difference in probability if parameter highDifference is true
+	public void simpleSample(int numberOfSamples, int minValue, int maxValue, boolean highDifference) throws FileNotFoundException{ 
 		List<MyPoint3D> points = new ArrayList<MyPoint3D>();
+		MyPoint3D p1,p2;
+		int counter = 0;
+		String id; // identifier that associates to each sample a list of uncertain points
 		
-		while (counter < num){
-			id = UUID.randomUUID().toString();
-			MyPoint3D p1,p2;
+		while (counter < numberOfSamples){
+			id = UUID.randomUUID().toString();	// generate a random identifier
+			
 			if(highDifference){
-				p1 = new MyPoint3D(id, min + Math.random() * (max - min), min + Math.random() * (max - min), min + Math.random() * (max - min), 0.8);
-				p2 = new MyPoint3D(id, min + Math.random() * (max - min), min + Math.random() * (max - min), min + Math.random() * (max - min), 0.2);
+				p1 = new MyPoint3D(id, minValue + Math.random() * (maxValue - minValue), minValue + Math.random() * (maxValue - minValue), minValue + Math.random() * (maxValue - minValue), 0.8);
+				p2 = new MyPoint3D(id, minValue + Math.random() * (maxValue - minValue), minValue + Math.random() * (maxValue - minValue), minValue + Math.random() * (maxValue - minValue), 0.2);
 			} else {
-				p1 = new MyPoint3D(id, min + Math.random() * (max - min), min + Math.random() * (max - min), min + Math.random() * (max - min), 0.5);
-				p2 = new MyPoint3D(id, min + Math.random() * (max - min), min + Math.random() * (max - min), min + Math.random() * (max - min), 0.5);
+				p1 = new MyPoint3D(id, minValue + Math.random() * (maxValue - minValue), minValue + Math.random() * (maxValue - minValue), minValue + Math.random() * (maxValue - minValue), 0.5);
+				p2 = new MyPoint3D(id, minValue + Math.random() * (maxValue - minValue), minValue + Math.random() * (maxValue - minValue), minValue + Math.random() * (maxValue - minValue), 0.5);
 			}
 			points.add(p1);
 			points.add(p2);
@@ -34,23 +35,19 @@ public class Sampler3D {
 		printToFile(points, "simplesample3D.csv");
 	}
 	
-	public void genericSample(int num, int uncertainPointsMax,  int min, int max) throws FileNotFoundException{ // num is number of samples and the max number of points for each identifier
-		int uncertainPoints, counter = 0;
-		String id;
+	// completely random algorithm that for each sample generate a list of uncertain points with random probabilities, where the max length of this list is maxNumberOfUncertainPoints
+	public void genericSample(int numberOfSamples, int maxNumberOfUncertainPoints,  int minValue, int maxValue) throws FileNotFoundException{ 
 		List<MyPoint3D> points = new ArrayList<MyPoint3D>();
-		
-		while (counter < num){
-			id = UUID.randomUUID().toString();
-			MyPoint3D p;
-			
-			// Choose number of uncertain points
-			uncertainPoints = 1 + (int)(Math.random() * uncertainPointsMax);
-			int unCounter = 0;
-			double[] probabilities = randSum(uncertainPoints);
-			System.out.println("before cycle");
-			while (unCounter < uncertainPoints){
-				System.out.println(unCounter);
-				p = new MyPoint3D(id, min + Math.random() * (max - min), min + Math.random() * (max - min), min + Math.random() * (max - min), probabilities[unCounter]);
+		MyPoint3D p;
+		int numberOfUncertainPoints , counter = 0, unCounter = 0;
+		String id;
+	
+		while (counter < numberOfSamples){
+			id = UUID.randomUUID().toString();	// generate a random identifier
+			numberOfUncertainPoints = 1 + (int)(Math.random() * maxNumberOfUncertainPoints); // Choose number of uncertain points
+			double[] probabilities = getRandomProbabilities(numberOfUncertainPoints); // get a probability vector of size equal to numberOfUncertainPoints
+			while (unCounter < numberOfUncertainPoints){ // generate the uncertainPoints using values inside the probabilities vector as uncertain points' probabilities
+				p = new MyPoint3D(id, minValue + Math.random() * (maxValue - minValue), minValue + Math.random() * (maxValue - minValue), minValue + Math.random() * (maxValue - minValue), probabilities[unCounter]);
 				points.add(p);
 				unCounter++;
 			}
@@ -59,44 +56,45 @@ public class Sampler3D {
 		printToFile(points, "genericSample3D.csv");
 	}
 	
-	public void gaussianSample(int num, double [] means, double[][] covariances) throws FileNotFoundException{
-		String id;
-		int counter = 0;
-		MultivariateNormalDistribution mnd = new MultivariateNormalDistribution(means, covariances);
+	// For each sample generate uncertain points that are sampled from a Multivariate Gaussian distribution with mean = means and covariance = covariances
+	public void gaussianSample(int numberOfSamples, double [] means, double[][] covariances) throws FileNotFoundException{
+		MultivariateNormalDistribution gaussian = new MultivariateNormalDistribution(means, covariances);
 		List<MyPoint3D> points = new ArrayList<MyPoint3D>();
-		while(counter < num){
-			double[] sample; 
+		MyPoint3D p;
+		double[] sample;
+		double totalProbability = 0;
+		int counter = 0;
+		String id;
+		
+		while(counter < numberOfSamples){
 			id = UUID.randomUUID().toString();
-			MyPoint3D p;
-			double totProb = 0;
-			while (totProb <= 1){ //until prob sum to 1
-				sample = mnd.sample();
-				p = new MyPoint3D(id, sample[0], sample[1], sample[2], mnd.density(sample));
-				totProb += mnd.density(sample);
+			while (totalProbability <= 1){ // iterate until the sum of the probabilities of the uncertain points is 1 (almost)
+				sample = gaussian.sample();
+				p = new MyPoint3D(id, sample[0], sample[1], sample[2], gaussian.density(sample));
+				totalProbability += gaussian.density(sample);
 				points.add(p);
 			}
 			counter++;
 		}
 		printToFile(points, "gaussianSample3D.csv");
-		
 	}
 	
-	private double[] randSum(int n)
+	private double[] getRandomProbabilities(int n)
 	{
 		Random rand = new Random();
-		double randNums[] = new double[n], sum = 0;
+		double randomProbabilities[] = new double[n], sum = 0;
 		
 		for (int i = 0; i < n; i++){
-			randNums[i] = rand.nextDouble();
-			sum += randNums[i];
+			randomProbabilities[i] = rand.nextDouble();
+			sum += randomProbabilities[i];
 		}
 		
 		// Divide obtaining a sum to 1 double array
 		for(int i = 0; i < n; i++){
-			randNums[i] /= sum;
+			randomProbabilities[i] /= sum;
 		}
 		
-		return randNums;
+		return randomProbabilities;
 	}
 	
 	private void printToFile(List<MyPoint3D> points, String filename) throws FileNotFoundException{

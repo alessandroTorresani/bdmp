@@ -28,7 +28,7 @@ public class App
     			{1, 0},
     			{0, 1}
     	};
-    	sampler2D.gaussianSample(100, means, covariances);
+    	sampler2D.gaussianSample(100, means, covariances); //PROBLEM: we should use different means and covariances for each set of uncertain points.
     	
     	
     	//sampler3D.simpleSample(500,-100 , 100, false);
@@ -41,7 +41,7 @@ public class App
     			{0, 1, 0},
     			{0, 0, 1}
     	};
-    	//sampler3D.gaussianSample(10, means3, covariances3);
+    	//sampler3D.gaussianSample(10, means3, covariances3); 
     	
     	
     	/*double[] res;
