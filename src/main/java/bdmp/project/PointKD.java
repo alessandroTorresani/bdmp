@@ -1,11 +1,15 @@
 package bdmp.project;
 
-public class PointKD extends Point {
+public class PointKD {
+	private String id;
 	private double[] dimensions;
 	private int dimension;
+	private double prob;
+	
 
 	public PointKD(String id, int dimension, double[] dimensions,double prob) {
-		super(prob, id);
+		this.setId(id);
+		this.setProb(prob);
 		this.setDimension(dimension);
 		this.setDimensions(dimensions);
 	}
@@ -24,6 +28,22 @@ public class PointKD extends Point {
 
 	public void setDimension(int dimension) {
 		this.dimension = dimension;
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public double getProb() {
+		return prob;
+	}
+
+	public void setProb(double prob) {
+		this.prob = prob;
 	}
 	
 }

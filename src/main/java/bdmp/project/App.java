@@ -2,8 +2,10 @@ package bdmp.project;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -29,8 +31,8 @@ public class App
     	Sampler sampler3D = new Sampler(3); //3D sampler
     	Sampler sampler10D = new Sampler(10); //3D sampler
     	
-    	sampler2D.simpleSample(5,0,+100, true);
-    	//sampler2D.genericSample(500,10,-100,+100);
+    	sampler2D.simpleSample(10,0,100, true);
+    	//sampler2D.genericSample(500,10,0,100);
     	//sampler2D.gaussianSample(100, sampleMean(2,0,100), ampleCovariance(2)); //PROBLEM: we should use different means and covariances for each set of uncertain points.
     		
     	//sampler3D.simpleSample(500,-100 , 100, false);
@@ -41,19 +43,19 @@ public class App
     	//sampler20D.genericSample(500, 15, 0, 100);
     	//sampler10D.gaussianSample(10, sampleMean(10,0,100), sampleCovariance(10));
     	
+    	computeCentroids(readCsvFile("input/simpleSample2D.csv"));
+    	
     	// Working k-mean algorithm
-       /* Dataset data = FileHandler.loadDataset(new File("input/aa.csv"), 2, ",");
-        int k = 3;
+        Dataset data = FileHandler.loadDataset(new File("input/certainSet.csv"), 1, ",");
+        int k = 5;
         KMeans km = new KMeans(k);
         Dataset[] clusters = km.cluster(data);
         for (int i=0; i< k; i++){
         	System.out.println(clusters[i]+"\n");
-        }
-        */
-    	computeCentroids(readCsvFile("input/simplesample2D.csv"));
+        }	
     }
     
-    private static double[] sampleMean(int dimension,int minValue, int maxValue){
+    private static double[] getRandomMeanVector(int dimension,int minValue, int maxValue){
     	double[] means = new double[dimension];
     	for (int i = 0; i < dimension; i++){
     		means[i] = minValue + Math.random() * (maxValue - minValue);
@@ -61,7 +63,7 @@ public class App
     	return means;
     }
     
-    private static double[][] sampleCovariance(int dimension){
+    private static double[][] getIdentityCovarianceMatrix(int dimension){
     	double[][] covariances = new double[dimension][dimension];
     	for (int i = 0; i < dimension; i++){
     		for (int j = 0; j < dimension; j++){
@@ -73,39 +75,56 @@ public class App
     	return covariances;
     }
     
-    private static void computeCentroids(Map<String, List<PointKD>> points){
+    private static void computeCentroids(Map<String, List<PointKD>> points) throws FileNotFoundException{
     	List<PointKD> uncertainPoints = new ArrayList<PointKD>();
     	Set<String> keys = points.keySet();
     	Iterator<String> it = keys.iterator();
-    	System.out.println("size keyset: " + keys.size());
+    	List<PointKD> finalList = new ArrayList<PointKD>();
+    	
     	while(it.hasNext()){
-    		System.out.println(it.next());
+    		String key = it.next();
+    		uncertainPoints = points.get(key);
+    		int dimension = uncertainPoints.get(0).getDimension();
+    		double[] newDimensions = new double[dimension];
+    		for (int i = 0; i < dimension; i++){
+    			newDimensions[i] = computeCentroid(uncertainPoints, i);
+    		}
+    		finalList.add(new PointKD("certain", dimension, newDimensions, 1));
     	}
-
     	
-    	
-    	
-    	/*String k1 = keys.iterator().next();
-    	System.out.println("k1: " + k1);
-    	String k2 = keys.iterator().next();
-    	System.out.println("k2: " + k2);
-    	String k3 = keys.iterator().next();
-    	System.out.println("k3: " + k3);
-    	System.out.println(points.get(k1).toString());*/
-    	
+    	PrintWriter pw = new PrintWriter(new File("input/certainSet.csv"));
+    	StringBuilder sb = new StringBuilder();
+    	while(!finalList.isEmpty()){
+    		PointKD p = finalList.remove(0);
+    		for (int i = 0; i < p.getDimension(); i++){ // Cycle all over dimensions
+    			sb.append(p.getDimensions()[i]);
+    			sb.append(",");
+    		}
+    		sb.append("\n");
+    	}
+    	pw.write(sb.toString());
+    	pw.close();
+    }
+    
+    private static double computeCentroid(List<PointKD> points, int dimensionindex){
+    	double res = 0;
+    	int size = points.size();
+    	for (int i = 0; i < points.size(); i++){
+    		PointKD p = points.get(i);
+    		res += p.getDimensions()[dimensionindex] * p.getProb();
+    	}
+    	return res/size;
     }
     
     private static Map<String, List<PointKD>> readCsvFile(String filename){
     	final String COMMA_DELIMITER = ",";
     	BufferedReader br = null;
-    	Map<String, List<PointKD>> points = new HashMap<String, List<PointKD>>();	// associate to each key(certain point) a list of uncertain points (uncertain points)
-    	List<PointKD> templist = new ArrayList<PointKD>(); 
+    	Map<String, List<PointKD>> points = new HashMap<String, List<PointKD>>();	// associate to each key(certain point) a list of uncertain points (uncertain points) 
     	try {
     		br = new BufferedReader(new FileReader(filename));
     		String line="";
     		while((line = br.readLine()) != null){	// Iterate until there are lines to read
     			String[] parts = line.split(COMMA_DELIMITER);
-    			System.out.println("parts: " + parts[0]);
     			if (parts.length > 0){
     				double[] dimensions = new double[parts.length-2];
     				for (int i = 0; i < parts.length-2; i++){
@@ -113,17 +132,15 @@ public class App
     				}
     				PointKD p = new PointKD(parts[0], parts.length-2, dimensions, Double.parseDouble(parts[parts.length-1]));
     				if(points.containsKey(parts[0])){
-    					templist = points.get(parts[0]);
-    					templist.add(p);
-    					points.put(parts[0], templist);
+    					points.get(parts[0]).add(p);
+    					List<PointKD> a = points.get(parts[0]);
     				} else {
+    					List<PointKD> templist = new ArrayList<PointKD>();
     					templist.add(p);
     					points.put(parts[0], templist);
     				}
-    				templist.clear();
     			}
     		}
-    		return points;
     		
     	} catch(Exception ee)
         {
@@ -134,6 +151,7 @@ public class App
             try
             {
                 br.close();
+                
             }
             catch(IOException ie)
             {
@@ -141,6 +159,6 @@ public class App
                 ie.printStackTrace();
             }
         }
-    	return null;
+    	return points;
     }
 }

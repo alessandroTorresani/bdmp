@@ -39,7 +39,7 @@ public class Sampler {
 			points.add(p2);
 			counter++;
 		}
-		printToFile(points, "simplesample"+this.dimension+"D.csv");
+		printToFile(points, "simpleSample"+this.dimension+"D.csv");
 	}
 
 	// completely random algorithm that for each sample generate a list of uncertain points with random probabilities, where the max length of this list is maxNumberOfUncertainPoints
