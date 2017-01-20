@@ -98,12 +98,12 @@ public class App
     private static Map<String, List<PointKD>> readCsvFile(String filename){
     	final String COMMA_DELIMITER = ",";
     	BufferedReader br = null;
-    	Map<String, List<PointKD>> points = new HashMap<String, List<PointKD>>();
-    	List<PointKD> templist = new ArrayList<PointKD>();
+    	Map<String, List<PointKD>> points = new HashMap<String, List<PointKD>>();	// associate to each key(certain point) a list of uncertain points (uncertain points)
+    	List<PointKD> templist = new ArrayList<PointKD>(); 
     	try {
     		br = new BufferedReader(new FileReader(filename));
     		String line="";
-    		while((line = br.readLine()) != null){
+    		while((line = br.readLine()) != null){	// Iterate until there are lines to read
     			String[] parts = line.split(COMMA_DELIMITER);
     			System.out.println("parts: " + parts[0]);
     			if (parts.length > 0){
