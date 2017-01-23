@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -31,8 +32,8 @@ public class App
     	Sampler sampler3D = new Sampler(3); //3D sampler
     	Sampler sampler10D = new Sampler(10); //3D sampler
     	
-    	sampler2D.simpleSample(10,0,100, true);
-    	//sampler2D.genericSample(500,10,0,100);
+    	//sampler2D.simpleSample(10,0,100, true);
+    	sampler2D.genericSample(10,10,0,100);
     	//sampler2D.gaussianSample(100, sampleMean(2,0,100), ampleCovariance(2)); //PROBLEM: we should use different means and covariances for each set of uncertain points.
     		
     	//sampler3D.simpleSample(500,-100 , 100, false);
@@ -43,16 +44,20 @@ public class App
     	//sampler20D.genericSample(500, 15, 0, 100);
     	//sampler10D.gaussianSample(10, sampleMean(10,0,100), sampleCovariance(10));
     	
-    	computeCentroids(readCsvFile("input/simpleSample2D.csv"));
+    	//computeCentroids(readCsvFile("input/genericSample2D.csv"));
     	
-    	// Working k-mean algorithm
+    	/* Working k-mean algorithm
         Dataset data = FileHandler.loadDataset(new File("input/certainSet.csv"), 1, ",");
         int k = 5;
         KMeans km = new KMeans(k);
         Dataset[] clusters = km.cluster(data);
         for (int i=0; i< k; i++){
         	System.out.println(clusters[i]+"\n");
-        }	
+        }	*/
+    
+    	for (int i = 0; i < 10; i++){
+    		sampler2D.PoissonSample(10, 10, 20);
+    	}
     }
     
     private static double[] getRandomMeanVector(int dimension,int minValue, int maxValue){
@@ -87,15 +92,18 @@ public class App
     		int dimension = uncertainPoints.get(0).getDimension();
     		double[] newDimensions = new double[dimension];
     		for (int i = 0; i < dimension; i++){
-    			newDimensions[i] = computeCentroid(uncertainPoints, i);
+    			newDimensions[i] = computeMean(uncertainPoints, i);
     		}
-    		finalList.add(new PointKD("certain", dimension, newDimensions, 1));
+    		finalList.add(new PointKD(uncertainPoints.get(0).getId() , dimension, newDimensions, 1));
+    		//finalList.add(new PointKD("certain", dimension, newDimensions, 1));
     	}
     	
     	PrintWriter pw = new PrintWriter(new File("input/certainSet.csv"));
     	StringBuilder sb = new StringBuilder();
     	while(!finalList.isEmpty()){
     		PointKD p = finalList.remove(0);
+    		sb.append(p.getId());
+    		sb.append(",");
     		for (int i = 0; i < p.getDimension(); i++){ // Cycle all over dimensions
     			sb.append(p.getDimensions()[i]);
     			sb.append(",");
@@ -106,14 +114,13 @@ public class App
     	pw.close();
     }
     
-    private static double computeCentroid(List<PointKD> points, int dimensionindex){
+    private static double computeMean(List<PointKD> points, int dimensionindex){
     	double res = 0;
-    	int size = points.size();
     	for (int i = 0; i < points.size(); i++){
     		PointKD p = points.get(i);
     		res += p.getDimensions()[dimensionindex] * p.getProb();
     	}
-    	return res/size;
+    	return res;
     }
     
     private static Map<String, List<PointKD>> readCsvFile(String filename){

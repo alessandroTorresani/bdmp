@@ -4,12 +4,15 @@ package bdmp.project;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
 import org.apache.commons.math3.distribution.MultivariateNormalDistribution;
+import org.apache.commons.math3.distribution.PoissonDistribution;
+import org.apache.commons.math3.util.Pair;
 
 public class Sampler {
 	
@@ -94,7 +97,51 @@ public class Sampler {
 			}
 			printToFile(points, "gaussianSample"+this.dimension+"D.csv");
 		}
+	}
+	
+	// Poisson distribution sample
+	public void PoissonSample(int numberOfSamples, int maxNumberOfUncertainPoints, double mean){
+		List<PointKD> points = new ArrayList<PointKD>();
+		int counter = 0;
 		
+		String id;
+	/*	while(counter < numberOfSamples){
+			id = UUID.randomUUID().toString();	// generate a random identifier
+			//p = new PointKD(id, maxNumberOfUncertainPoints, dimensions, prob);
+		}*/
+		
+		getPoissonSample(mean);
+	}
+	
+	private List<Pair<int[],Double>> getPoissonSample(double mean){
+		List<Pair<int[],Double>> list= new ArrayList();
+		PoissonDistribution []poissons = new PoissonDistribution[this.dimension];
+		for (int i = 0; i < this.dimension; i++){
+			poissons[i] = new PoissonDistribution(mean);
+		}
+		int [] samples = new int[this.dimension];
+		double totProb = 0;
+		double sampleProb;
+		boolean cycle = true;
+		while (cycle){
+			sampleProb = 1;
+			if (totProb == 1.00){
+				cycle = false;
+			}
+			for (int i = 0; i < this.dimension; i++ ){
+				samples[i] = poissons[i].sample();
+			}
+			for (int i = 0; i < this.dimension; i++){
+				sampleProb = roundTwo(sampleProb * poissons[i].cumulativeProbability(samples[i]));
+			}
+			if (sampleProb + roundTwo(totProb) <= 1.00 && sampleProb > 0.0){ 
+				list.add(new Pair<int[], Double>(samples,sampleProb));
+				totProb = roundTwo(totProb + sampleProb);
+			}
+			System.out.println("Remaining prob: " + totProb);
+		}
+		System.out.println(list.toString());
+		return list;
 	}
 	
 	private double[] getRandomProbabilities(int n)
@@ -139,6 +186,12 @@ public class Sampler {
 		}
 		pw.write(sb.toString());
 		pw.close();
+	}
+	
+	private double roundTwo(double num){
+		DecimalFormat df = new DecimalFormat("#.##");
+    	double b = Double.parseDouble(df.format(num).replaceAll(",", "."));
+		return b;
 	}
 
 }
