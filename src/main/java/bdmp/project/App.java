@@ -32,7 +32,7 @@ public class App
     	Sampler sampler3D = new Sampler(3); //3D sampler
     	Sampler sampler10D = new Sampler(10); //3D sampler
     	
-    	sampler2D.simpleSample(10,0,100, true);
+    	//sampler2D.simpleSample(10,0,100, true);
     	sampler2D.genericSample(10,10,0,100);
     	//sampler2D.gaussianSample(100, sampleMean(2,0,100), ampleCovariance(2)); //PROBLEM: we should use different means and covariances for each set of uncertain points.
     		
@@ -44,7 +44,7 @@ public class App
     	//sampler20D.genericSample(500, 15, 0, 100);
     	//sampler10D.gaussianSample(10, sampleMean(10,0,100), sampleCovariance(10));
     	
-    	//computeCentroids(readCsvFile("input/genericSample2D.csv"));
+    	computeCentroids(readCsvFile("input/genericSample2D.csv"));
     	
     	/* Working k-mean algorithm
         Dataset data = FileHandler.loadDataset(new File("input/certainSet.csv"), 1, ",");
