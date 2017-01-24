@@ -147,16 +147,16 @@ public class Sampler {
 	private double[] getRandomProbabilities(int n)
 	{
 		Random rand = new Random();
-		double randomProbabilities[] = new double[n], sum = 0;
+		double randomProbabilities[] = new double[n], sum = 0.0;
 		
 		for (int i = 0; i < n; i++){
-			randomProbabilities[i] = rand.nextDouble();
-			sum += randomProbabilities[i];
+			randomProbabilities[i] = roundTwo(rand.nextDouble());
+			sum = roundTwo(sum+randomProbabilities[i]);
 		}
 		
 		// Divide obtaining double array that sums to 1
 		for(int i = 0; i < n; i++){
-			randomProbabilities[i] /= sum;
+			randomProbabilities[i] = roundTwo(randomProbabilities[i]/sum);
 		}
 		
 		return randomProbabilities;
@@ -165,7 +165,7 @@ public class Sampler {
 	private double[] getDimensions(int minValue, int maxValue){
 		double[] dimensions = new double[this.dimension];
 		for (int i = 0; i < this.dimension; i++){
-			dimensions[i] = minValue + Math.random() * (maxValue - minValue);
+			dimensions[i] = roundTwo(minValue + Math.random() * (maxValue - minValue));
 		}
 		return dimensions;
 	}
