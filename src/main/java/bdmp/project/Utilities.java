@@ -48,16 +48,45 @@ public class Utilities {
     		expectedPoints.add(new PointKD(uncertainPoints.get(0).getId() , dimension, newDimensions, 1));
     	}
     	
-    	writeCertainPointsToFile(expectedPoints, "certainSet.csv");
+    	writeCertainPointsToFile(expectedPoints, "averageCertainSet.csv");
 	}
 	
-	private static double computeMean(List<PointKD> points, int dimensionindex){
+	private static double computeMean(List<PointKD> uncertainPoints, int dimensionindex){
 		double res = 0;
-		for (int i = 0; i < points.size(); i++){
-			PointKD p = points.get(i);
+		for (int i = 0; i < uncertainPoints.size(); i++){
+			PointKD p = uncertainPoints.get(i);
 			res += p.getDimensions()[dimensionindex] * p.getProb();
 		}
 		return roundTo2decimals(res);
+	}
+	
+	public static void chooseMostProbablePoints(Map<String, List<PointKD>> points) throws FileNotFoundException{
+		List<PointKD> uncertainPoints = new ArrayList<PointKD>();
+    	Set<String> keys = points.keySet();
+    	Iterator<String> it = keys.iterator();
+    	List<PointKD> mostProbablePoints = new ArrayList<PointKD>();
+    	while(it.hasNext() && points.size() > 0){
+    		String key = it.next(); // get the next key
+    		uncertainPoints = points.get(key); // get uncertain points related to that key
+    		PointKD bestPoint = chooseMostProbablePoint(uncertainPoints);
+    		bestPoint.setProb(1);
+    		mostProbablePoints.add(bestPoint);
+    	}
+    	writeCertainPointsToFile(mostProbablePoints, "mostProbableCertainSet.csv");
+    	
+	}
+	
+	private static PointKD chooseMostProbablePoint(List<PointKD> uncertainPoints){
+		double bestProbability = uncertainPoints.get(0).getProb();
+		PointKD bestPoint = uncertainPoints.get(0);
+		for (int i = 1; i < uncertainPoints.size(); i++){
+			if (uncertainPoints.get(i).getProb() > bestProbability){
+				bestPoint = uncertainPoints.get(i);
+				bestProbability = uncertainPoints.get(i).getProb();
+			}
+		}
+		return bestPoint;
+		
 	}
 	
 	public static void writeUncertainPointsToFile(List<PointKD> points, String filename) throws FileNotFoundException{
@@ -80,7 +109,7 @@ public class Utilities {
 	
 	private static void writeCertainPointsToFile(List<PointKD> points, String filename) throws FileNotFoundException{
     	
-    	PrintWriter pw = new PrintWriter(new File("input/certainSet.csv"));
+    	PrintWriter pw = new PrintWriter(new File("input/"+filename));
     	StringBuilder sb = new StringBuilder();
     	while(!points.isEmpty()){
     		PointKD p = points.remove(0);

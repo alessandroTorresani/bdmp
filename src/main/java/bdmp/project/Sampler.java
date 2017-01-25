@@ -127,8 +127,8 @@ public class Sampler {
 		double randomProbabilities[] = new double[n], sum = 0.0;
 		
 		for (int i = 0; i < n; i++){
-			randomProbabilities[i] = Utilities.roundTo2decimals(rand.nextDouble());
-			sum = Utilities.roundTo2decimals(sum+randomProbabilities[i]);
+			randomProbabilities[i] = rand.nextDouble();
+			sum = sum + randomProbabilities[i];
 		}
 		
 		// Divide obtaining double array that sums to 1

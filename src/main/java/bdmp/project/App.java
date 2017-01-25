@@ -28,19 +28,21 @@ public class App
     	Sampler sampler10D = new Sampler(10); //3D sampler
     	
     	//sampler2D.simpleSample(10,0,100, true);
-    	//sampler2D.genericSample(10,10,0,100);
+    	//sampler2D.randomSample(100,10,0,100);
     		
-    	//sampler3D.simpleSample(500,-100 , 100, false);
-    	//sampler3D.genericSample(500,10, -100 , 100);
+    	//sampler3D.simpleSample(10000,0 , 100, false);
+    	//sampler3D.randomSample(10000,10, 0, 100);
     	
     	//sampler20D.simpleSample(500, 0, 100, true);
     	//sampler20D.genericSample(500, 15, 0, 100);
     	
-    	sampler2D.poissonSample(10, Utilities.getRandomMeanVectors(2, 10, 0, 100));
-    	Utilities.computeExpectedMeans(Utilities.readCsvFile("input/poissonSample2D.csv"));
+    	//sampler2D.poissonSample(10, Utilities.getRandomMeanVectors(2, 10, 0, 100));
     	
-    	Dataset data = FileHandler.loadDataset(new File("input/certainSet.csv"), 1, ",");
-        int k = 5;
+    	//Utilities.computeExpectedMeans(Utilities.readCsvFile("input/randomSample2D.csv"));
+    	//Utilities.chooseMostProbablePoints(Utilities.readCsvFile("input/randomSample2D.csv"));
+    	
+    	Dataset data = FileHandler.loadDataset(new File("input/mostProbableCertainSet.csv"), 1, ",");
+        int k = 2;
         KMeans km = new KMeans(k);
         Dataset[] clusters = km.cluster(data);
         for (int i=0; i< k; i++){
