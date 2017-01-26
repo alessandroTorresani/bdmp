@@ -1,63 +1,107 @@
 package bdmp.project;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.InputMismatchException;
+import java.util.Scanner;
 
-import net.sf.javaml.clustering.KMeans;
-import net.sf.javaml.core.Dataset;
-import net.sf.javaml.tools.data.FileHandler;
 
 
 public class App 
 {
     public static void main( String[] args ) throws IOException
     {
-      
-    	Sampler sampler2D = new Sampler(2); //2D sampler
-    	Sampler sampler3D = new Sampler(3); //3D sampler
-    	Sampler sampler10D = new Sampler(10); //3D sampler
-    	
-    	//sampler2D.simpleSample(10,0,100, true);
-    	//sampler2D.randomSample(100,10,0,100);
+    		final int K = 2;
+    		int dimension = 2;
+    		Scanner scan1 = new Scanner(System.in);
+    		boolean dimensionCycle = true;
     		
-    	//sampler3D.simpleSample(10000,0 , 100, false);
-    	//sampler3D.randomSample(10000,10, 0, 100);
-    	
-    	//sampler20D.simpleSample(500, 0, 100, true);
-    	//sampler20D.genericSample(500, 15, 0, 100);
-    	
-    	//sampler2D.poissonSample(10, Utilities.getRandomMeanVectors(2, 10, 0, 100));
-    	
-    	//Utilities.computeExpectedMeans(Utilities.readCsvFile("input/randomSample2D.csv"));
-    	//Utilities.chooseMostProbablePoints(Utilities.readCsvFile("input/randomSample2D.csv"));
-    	
-    	Dataset data = FileHandler.loadDataset(new File("input/mostProbableCertainSet.csv"), 1, ",");
-        int k = 2;
-        KMeans km = new KMeans(k);
-        Dataset[] clusters = km.cluster(data);
-        for (int i=0; i< k; i++){
-        	FileHandler.exportDataset(clusters[i], new File("output/cluster"+i+".txt"));
-        }	
-        
-    	
+    		while(dimensionCycle){
+    			System.out.println("Choose the dimension of the points: ");
+    			try {
+    				dimension = scan1.nextInt();
+    			} catch(InputMismatchException e){
+    				System.err.println("Dimension must be an integer.");
+    				System.exit(1);
+    			}
+    			if (dimension >= 2 && dimension <= 100){
+    				dimensionCycle = false;
+    			} else {
+    				System.err.println("Dimension must be an integer greater or equal to 2.");
+    			}
+    		}
+    		
+    		Sampler sampler = new Sampler(dimension);
+    		String samplingChoice;
+    		String algorithmChoice;
+    		boolean samplingCycle = true;
+    		boolean algorihtmCycle = true;
+    		Scanner scan = new Scanner(System.in);
+    		while (samplingCycle){
+    			System.out.println("[Dimension: "+dimension + "] Choose a sampling algorithm: \n \"s\" for simple sampling. "
+    					+ "\n \"r\" for random sampling. \n \"p\" for Poisson sampling.");
+    			samplingChoice = scan.nextLine().toLowerCase();
+    			switch (samplingChoice){
+    			
+    			case "s" : sampler.simpleSample(100, 0, 100, true); 
+    			algorihtmCycle = true;
+    			while (algorihtmCycle){
+    				System.out.println("[Dimension: "+dimension + "][Simple sampling] Choose how to manage uncertainty: "
+    						+ "\n \"e\" for expected points algorithm. \n \"m\" for most probable points algorithm." );
+    				algorithmChoice = scan.nextLine().toLowerCase();
+    				if (algorithmChoice.equals("e")){
+    					Utilities.computeExpectedMeans(Utilities.readCsvFile("input/simpleSample"+dimension+"D.csv"));
+    					Utilities.computeClustering("averageCertainSet.csv", K );
+    					algorihtmCycle = false;
+    					
+    				} else if (algorithmChoice.equals("m")){
+    					Utilities.chooseMostProbablePoints(Utilities.readCsvFile("input/simpleSample"+dimension+"D.csv"));
+    					Utilities.computeClustering("mostProbableCertainSet.csv", K );
+    					algorihtmCycle = false;
+    				}
+    			}
+    			
+    			samplingCycle = false;
+    			break;
+    			
+    			case "r" : sampler.randomSample(100,10, 0, 100); 
+    			algorihtmCycle = true;
+    			while (algorihtmCycle){
+    				System.out.println("[Dimension: "+dimension + "][Random sampling] Choose how to manage uncertainty: "
+    						+ "\n \"e\" for expected points algorithm. \n \"m\" for most probable points algorithm." );
+    				algorithmChoice = scan.nextLine().toLowerCase();
+    				if (algorithmChoice.equals("e")){
+    					Utilities.computeExpectedMeans(Utilities.readCsvFile("input/randomSample"+dimension+"D.csv"));
+    					Utilities.computeClustering("averageCertainSet.csv", K );
+    					algorihtmCycle = false;
+    				} else if (algorithmChoice.equals("m")){
+    					Utilities.chooseMostProbablePoints(Utilities.readCsvFile("input/randomSample"+dimension+"D.csv"));
+    					Utilities.computeClustering("mostProbableCertainSet.csv", K );
+    					algorihtmCycle = false;
+    				}
+    			}
+    			samplingCycle = false;
+    			break;
+    			
+    			case "p" : sampler.poissonSample(100,Utilities.getRandomMeanVectors(dimension, 100, 0, 100)); 
+    			algorihtmCycle = true;
+    			while (algorihtmCycle){
+    				System.out.println("[Dimension: "+dimension + "][Poisson sampling] Choose how to manage uncertainty: "
+    						+ "\n \"e\" for expected points algorithm. \n \"m\" for most probable points algorithm." );
+    				algorithmChoice = scan.nextLine().toLowerCase();
+    				if (algorithmChoice.equals("e")){
+    					Utilities.computeExpectedMeans(Utilities.readCsvFile("input/poissonSample"+dimension+"D.csv"));
+    					Utilities.computeClustering("averageCertainSet.csv", K );
+    					algorihtmCycle = false;
+    				} else if (algorithmChoice.equals("m")){
+    					Utilities.chooseMostProbablePoints(Utilities.readCsvFile("input/poissonSample"+dimension+"D.csv"));
+    					Utilities.computeClustering("mostProbableCertainSet.csv", K );
+    					algorihtmCycle = false;
+    				}
+    			}
+    			samplingCycle = false;
+    			break;
+    			}
+    		}
     }
-    
-    	
-    
-    
-    
-    
-   
-    
-    
+     
 }

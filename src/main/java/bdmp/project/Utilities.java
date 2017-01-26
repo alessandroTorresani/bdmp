@@ -14,6 +14,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import net.sf.javaml.clustering.KMeans;
+import net.sf.javaml.core.Dataset;
+import net.sf.javaml.tools.data.FileHandler;
+
 public class Utilities {
 	public static double[] getRandomMeanVector(int dimension,int minValue, int maxValue){
     	double[] means = new double[dimension];
@@ -92,6 +96,14 @@ public class Utilities {
 	public static void writeUncertainPointsToFile(List<PointKD> points, String filename) throws FileNotFoundException{
 		PrintWriter pw = new PrintWriter(new File("input/"+filename));
 		StringBuilder sb = new StringBuilder();
+		sb.append("identifier");
+		sb.append(",");
+		for(int i = 0; i < points.get(0).getDimension(); i++){
+			sb.append("d"+(i+1));
+			sb.append(",");
+		}
+		sb.append("probability");
+		sb.append("\n");
 		while(!points.isEmpty()){
 			PointKD p = points.remove(0);
 			sb.append(p.getId());
@@ -108,9 +120,13 @@ public class Utilities {
 	}
 	
 	private static void writeCertainPointsToFile(List<PointKD> points, String filename) throws FileNotFoundException{
-    	
-    	PrintWriter pw = new PrintWriter(new File("input/"+filename));
+		PrintWriter pw = new PrintWriter(new File("input/"+filename));
     	StringBuilder sb = new StringBuilder();
+		for(int i = 0; i < points.get(0).getDimension(); i++){
+			sb.append("d"+(i+1));
+			sb.append(",");
+		}
+		sb.append("\n");
     	while(!points.isEmpty()){
     		PointKD p = points.remove(0);
     		//sb.append(p.getId());
@@ -134,6 +150,7 @@ public class Utilities {
     	try {
     		br = new BufferedReader(new FileReader(filename));
     		String line="";
+    		br.readLine(); // skip the first line (headers)
     		while((line = br.readLine()) != null){	// Iterate until there are lines to read
     			String[] parts = line.split(COMMA_DELIMITER);
     			if (parts.length > 0){
@@ -172,6 +189,16 @@ public class Utilities {
         }
     	return points;
     }
+	
+	public static void computeClustering(String filename, int k) throws IOException{
+		Dataset data = FileHandler.loadDataset(new File("input/"+filename), 1, ",");
+    	data.remove(0); // remove headers
+        KMeans km = new KMeans(k);
+        Dataset[] clusters = km.cluster(data);
+        for (int i=0; i< k; i++){
+        	FileHandler.exportDataset(clusters[i], new File("output/cluster"+i+".txt"));
+        }	
+	}
 	
 	public static double roundTo2decimals(double num){
 		DecimalFormat df = new DecimalFormat("#.##");
