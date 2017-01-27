@@ -1,0 +1,45 @@
+DATA MINING PROJECT 1 - UNCERTAIN CLUSTERING
+
+Overview
+
+DataminingProject.jar is a Java library that permits to:
+1) Generate uncertain synthetic points with the shape (id, (d1,d2,...,dn),prob), where: 
+    * id: identifier 
+    * d1,d2,...,dn: dimensions of the uncertain points (coordinates)
+    * prob: probability that the uncertain point with identifier=id is at position (d1,d2,...,dn) 
+    So, for example, given a point with id "A":
+    (A,(10,20),0,8)), (A,(20,30),0.2)) will be the uncertain set of point "A". Prob must sum to 1.
+
+    This library has three different algorithms for sampling uncertain data:
+    1) Simple sampling (numberOfSamples, minValue, maxValue, highdifference): for each point generates two uncertain points having the same probability if highdifference is false;
+    Different probabilities if highdifference is true
+    2) Random sampling (numberOfSamples, MaxNumberOfUncertainPoints, minValue, maxValue): for each point generates a random number of uncertain points with random probabilities
+    3) Poisson sampling (numberOfSamples, lambdas): each point is represented as a Poisson random variables. It will sample at random point following this distribution 
+
+2) Transform uncertain data to certain data according to two different algorithms:
+    1) MostProbable algorithm: for each point this algorithm chooses the most probable uncertain point. It is like ignoring the fact that points are uncertain and pretending that 
+    the most probable one is the only value of the point.
+    2) AverageDistance algorithm: for each point the algorithm computes the expected mean of the uncertain points and chooses the expected mean as the actual value.
+
+3) Run a k-Mean algorithm on the output of MostProbable and AverageDistance methods. Note that the output of MostProbable and AverageDistance methods is a set of points without a concept of uncertainty.
+
+4) Plot the output of clustering algorithm with 2 python scripts, one for 2D and one for 3D.
+
+Execution
+
+Requires java8 and python 2.7.
+
+1) From command line run java -jar DataminingProject.jar
+2) Prompt the dimension of the points
+3) Prompt a sampling method 
+4) Results will be stored in 2 folders: 
+    1) $HOME/Documents/bdmpFiles/input/ 
+    2) $HOME/Documents/bdmpFiles/output/bdmpFiles/output 
+    Folder 1) contains synthetic data sampled according to the choosen method, and the "certainSet" computed with MostProbable and AverageDistance methods
+    Folder 2) contains, for each uncertainty algorithm, a clustering folder.  
+5) If you choose 2 or 3 dimension points, you can plot each cluster using python scripts: plotter2D.py and plotter3D.py
+Usage: python [scriptname][foldername] 
+So if you want to plot 2D points you will use:
+python plotter2D.py average         if you want to plot clustering obtained from AverageDistance method
+python plotter2D.py MostProbable    if you want to plot clustering obtained from MostProbable method
+

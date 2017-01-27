@@ -6,6 +6,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,6 +18,7 @@ import java.util.Set;
 
 import net.sf.javaml.clustering.KMeans;
 import net.sf.javaml.core.Dataset;
+import net.sf.javaml.core.Instance;
 import net.sf.javaml.tools.data.FileHandler;
 
 public class Utilities {
@@ -94,7 +97,7 @@ public class Utilities {
 	}
 	
 	public static void writeUncertainPointsToFile(List<PointKD> points, String filename) throws FileNotFoundException{
-		PrintWriter pw = new PrintWriter(new File("input/"+filename));
+		PrintWriter pw = new PrintWriter(new File(System.getProperty("user.home")+"/Documents/bdmpFiles/input/"+filename));
 		StringBuilder sb = new StringBuilder();
 		sb.append("identifier");
 		sb.append(",");
@@ -120,7 +123,7 @@ public class Utilities {
 	}
 	
 	private static void writeCertainPointsToFile(List<PointKD> points, String filename) throws FileNotFoundException{
-		PrintWriter pw = new PrintWriter(new File("input/"+filename));
+		PrintWriter pw = new PrintWriter(new File(System.getProperty("user.home")+"/Documents/bdmpFiles/input/"+filename));
     	StringBuilder sb = new StringBuilder();
 		for(int i = 0; i < points.get(0).getDimension(); i++){
 			sb.append("d"+(i+1));
@@ -148,7 +151,7 @@ public class Utilities {
     	BufferedReader br = null;
     	Map<String, List<PointKD>> points = new HashMap<String, List<PointKD>>();	// associate to each key(certain point) a list of uncertain points (uncertain points) 
     	try {
-    		br = new BufferedReader(new FileReader(filename));
+    		br = new BufferedReader(new FileReader(System.getProperty("user.home")+"/Documents/bdmpFiles/input/"+filename));
     		String line="";
     		br.readLine(); // skip the first line (headers)
     		while((line = br.readLine()) != null){	// Iterate until there are lines to read
@@ -190,14 +193,43 @@ public class Utilities {
     	return points;
     }
 	
-	public static void computeClustering(String filename, int k) throws IOException{
-		Dataset data = FileHandler.loadDataset(new File("input/"+filename), 1, ",");
+	public static void computeClustering(String filename, int k, String outputName) throws IOException{
+		Dataset data = FileHandler.loadDataset(new File(System.getProperty("user.home")+"/Documents/bdmpFiles/input/"+filename), 0, ",");
     	data.remove(0); // remove headers
         KMeans km = new KMeans(k);
         Dataset[] clusters = km.cluster(data);
+        //computeRadius(clusters[0]);
+        File output = new File(System.getProperty("user.home")+"/Documents/bdmpFiles/output/"+outputName+"/"); // creates output folders
+		output.mkdirs();
         for (int i=0; i< k; i++){
-        	FileHandler.exportDataset(clusters[i], new File("output/cluster"+i+".txt"));
-        }	
+        	FileHandler.exportDataset(clusters[i], new File(System.getProperty("user.home")+"/Documents/bdmpFiles/output/"+outputName+"/cluster"+i+".txt"));
+        }
+        System.out.println("Clustering completed, check the results at the following path: \n" + 
+        		System.getProperty("user.home")+"/Documents/bdmpFiles/output/"+outputName+"/");
+	}
+	
+	/*public static double computeRadius(Dataset clusters){
+		double centroid;
+		String input = new String();
+		StringBuffer sb = new StringBuffer();
+		for (Instance i : clusters){
+			sb.append(i.toString());
+		}
+		input = sb.toString();
+		System.out.println(input);
+		input.replaceAll("\\}", "");
+		input.replaceAll("\\{", "");
+		input.replaceAll("\\]", "");
+		input.replaceAll("\\[", "");
+		System.out.println(input);
+		return 0;
+	}*/
+	
+	public static void createFolders(){
+		File input = new File(System.getProperty("user.home")+"/Documents/bdmpFiles/input/");
+		input.mkdirs();
+		File output = new File(System.getProperty("user.home")+"/Documents/bdmpFiles/output/");
+		output.mkdirs();
 	}
 	
 	public static double roundTo2decimals(double num){

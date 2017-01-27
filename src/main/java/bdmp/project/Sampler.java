@@ -97,7 +97,6 @@ public class Sampler {
 		for (int i = 0; i < this.dimension; i++){
 			poissons[i] = new PoissonDistribution(lambdas[i]);
 		}
-		
 		double currentProbability = 0;
 		double sampleProbability;
 		boolean cycle = true;
