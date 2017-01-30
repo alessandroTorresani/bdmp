@@ -13,8 +13,9 @@ def get_clusters(foldername):
         if (os.path.exists(os.path.expanduser('~')+"/Documents/bdmpFiles/output/"+foldername+"/cluster"+str(counter)+".txt")):
             f = open(os.path.expanduser('~')+"/Documents/bdmpFiles/output/"+foldername+"/cluster"+str(counter)+".txt")
             for line in f:
-                point = line.replace("\n","").split("\t")
-                points.append(point)
+                point = line.split("\t")
+                points.append(float(point[1]))
+                points.append(float(point[2]))
             clusters['cluster'+str(counter)] = points   
             counter = counter + 1
         else:
@@ -33,10 +34,13 @@ else:
         points = clusters[key]
         first_list = []
         second_list = []
-        for point in points:
-            first_list.append(point[0])
-            second_list.append(point[1])
         
+        index = 0
+        for x in range(0,len(points)/2):
+            first_list.append(points[index])
+            second_list.append(points[index+1])
+            index = index + 2 
+
         output_list = []
         output_list.append(first_list)
         output_list.append(second_list)

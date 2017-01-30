@@ -2,7 +2,11 @@ package bdmp.project;
 
 import java.io.IOException;
 import java.util.InputMismatchException;
+import java.util.List;
 import java.util.Scanner;
+
+import org.apache.commons.math3.util.Pair;
+
 
 
 
@@ -13,7 +17,7 @@ public class App
     		final int K = 3;
     		final int MINVALUE = 0;
     		final int MAXVALUE = 100;
-    		final int POINTS = 100;
+    		final int POINTS = 10000;
     		
     		int dimension = 2;
     		Scanner scan1 = new Scanner(System.in);
@@ -35,7 +39,7 @@ public class App
     			}
     		}
     		
-    		Sampler sampler = new Sampler(dimension);
+    		Sampler sampler = new Sampler(dimension);	
     		String samplingChoice;
     		String algorithmChoice;
     		boolean samplingCycle = true;
@@ -96,7 +100,7 @@ public class App
     			
     			break;
     			
-    			case "p" : sampler.poissonSample(POINTS,Utilities.getRandomMeanVectors(dimension, 100, MINVALUE, MAXVALUE)); 
+    			case "p" : sampler.poissonSample(POINTS,Utilities.getRandomMeanVectors(dimension, POINTS, MINVALUE, MAXVALUE)); 
     			/*algorihtmCycle = true;
     			while (algorihtmCycle){
     				System.out.println("[Dimension: "+dimension + "][Poisson sampling] Choose how to manage uncertainty: "

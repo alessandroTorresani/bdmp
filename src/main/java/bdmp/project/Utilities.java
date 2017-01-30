@@ -6,8 +6,10 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -122,9 +124,15 @@ public class Utilities {
 		pw.close();
 	}
 	
+	
+	
+	
+	
 	private static void writeCertainPointsToFile(List<PointKD> points, String filename) throws FileNotFoundException{
 		PrintWriter pw = new PrintWriter(new File(System.getProperty("user.home")+"/Documents/bdmpFiles/input/"+filename));
     	StringBuilder sb = new StringBuilder();
+    	sb.append("identifier");
+    	sb.append(",");
 		for(int i = 0; i < points.get(0).getDimension(); i++){
 			sb.append("d"+(i+1));
 			sb.append(",");
@@ -132,8 +140,8 @@ public class Utilities {
 		sb.append("\n");
     	while(!points.isEmpty()){
     		PointKD p = points.remove(0);
-    		//sb.append(p.getId());
-    		//sb.append(",");
+    		sb.append(p.getId());
+    		sb.append(",");
     		for (int i = 0; i < p.getDimension(); i++){ // Cycle all over dimensions
     			sb.append(p.getDimensions()[i]);
     			sb.append(",");
@@ -198,6 +206,7 @@ public class Utilities {
     	data.remove(0); // remove headers
         KMeans km = new KMeans(k);
         Dataset[] clusters = km.cluster(data);
+        
         //computeRadius(clusters[0]);
         File output = new File(System.getProperty("user.home")+"/Documents/bdmpFiles/output/"+outputName+"/"); // creates output folders
 		output.mkdirs();
@@ -227,14 +236,73 @@ public class Utilities {
 	
 	public static void createFolders(){
 		File input = new File(System.getProperty("user.home")+"/Documents/bdmpFiles/input/");
-		input.mkdirs();
+		input.mkdirs(); 
 		File output = new File(System.getProperty("user.home")+"/Documents/bdmpFiles/output/");
 		output.mkdirs();
 	}
+	
+	
 	
 	public static double roundTo2decimals(double num){
 		DecimalFormat df = new DecimalFormat("#.##");
     	double rounded = Double.parseDouble(df.format(num).replaceAll(",", "."));
 		return rounded;
 	}
+	
+	
+	// ************************* Experimental ************************* //
+	
+	//Experimental version of writing to file that appends elements instead of writing them
+	public static void writeUncertainPointsToFileEx(List<PointKD> points, String filename) throws FileNotFoundException{
+		StringBuilder sb = new StringBuilder();
+		while(!points.isEmpty()){
+			PointKD p = points.remove(0);
+			sb.append(p.getId());
+			sb.append(",");
+			for (int i = 0; i < p.getDimension(); i++){ // Cycle all over dimensions
+				sb.append(p.getDimensions()[i]);
+				sb.append(",");
+			}
+			sb.append(p.getProb());
+			sb.append("\n");
+		}
+		try {
+			// This operation assumes that file already exists
+			Files.write(Paths.get(System.getProperty("user.home")+"/Documents/bdmpFiles/input/"+filename), sb.toString().getBytes(), StandardOpenOption.APPEND);
+		} catch (IOException e) {
+			// Handle exception
+			System.out.println(e.getMessage());
+		}
+	}
+	
+	public static void initializeFile(String filename, int dimension) throws IOException{
+
+		String path = System.getProperty("user.home")+"/Documents/bdmpFiles/input/"+filename; // Delete file if exists
+		Path old = Paths.get(path);
+		Files.deleteIfExists(old);
+		
+		File f = new File(path); // Creates a new file
+		f.createNewFile(); 
+		writeHeaders(dimension, filename); // Initialize the headers
+	}
+	
+	public static void writeHeaders(int dimension, String filename) throws FileNotFoundException{
+		StringBuilder sb = new StringBuilder();
+		sb.append("identifier");
+		sb.append(",");
+		for(int i = 0; i < dimension; i++){
+			sb.append("d"+(i+1));
+			sb.append(",");
+		}
+		sb.append("probability");
+		sb.append("\n");
+		try {
+			// This operation assumes that file already exists
+			Files.write(Paths.get(System.getProperty("user.home")+"/Documents/bdmpFiles/input/"+filename), sb.toString().getBytes(), StandardOpenOption.WRITE);
+		} catch (IOException e) {
+			// Handle exception
+			System.out.println(e.getMessage());
+		}
+	}
+	
 }
