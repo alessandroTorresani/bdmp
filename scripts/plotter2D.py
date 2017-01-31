@@ -28,7 +28,7 @@ else:
     foldername = sys.argv[1]
     clusters = get_clusters(foldername)
     output = {}
-    colors = ['red', 'green','blue','yellow','orange']
+    colors = ['red', 'green','blue','yellow','orange', 'black', "grey", 'pink', 'violet', 'indigo',"brown"]
 
     for key in clusters:
         points = clusters[key]
@@ -46,16 +46,17 @@ else:
         output_list.append(second_list)
         output[key] = output_list
 
-    index = 0
+    index = 0;
+    figure = plt.figure(foldername)
     for key in output:
         input_list = output[key]
         first_list = input_list[0]
         second_list = input_list[1]
         plt.plot(first_list, second_list, 'ro', color=colors[index])
         index = index + 1
-        
-    plt.show()
 
+   # figure = plt.figure(foldername)
+    plt.show()  
 
 
 

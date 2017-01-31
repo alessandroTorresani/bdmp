@@ -185,7 +185,7 @@ public class Sampler {
 	}
 
 	// Old Poisson sampling method. It may suffer from infinite loop when poisson sampling is selected (2D)
-	private List<Pair<int[],Double>> getPoissonSampleOld(double []lambdas){ 
+	/*private List<Pair<int[],Double>> getPoissonSampleOld(double []lambdas){ 
 		List<Pair<int[],Double>> uncertainPairs= new ArrayList<Pair<int[],Double>>();
 		PoissonDistribution []poissons = new PoissonDistribution[this.dimension]; 
 		for (int i = 0; i < this.dimension; i++){
@@ -214,6 +214,6 @@ public class Sampler {
 			System.out.println("Current probability: "+ currentProbability);
 		}
 		return uncertainPairs;
-	}
+	}*/
 
 }

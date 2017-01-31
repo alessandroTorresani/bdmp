@@ -29,7 +29,7 @@ else :
     foldername = sys.argv[1]
     clusters = get_clusters(foldername)
     output = {}
-    colors = ['red', 'green','blue','yellow','orange']
+    colors = ['red', 'green','blue','yellow','orange', 'black', "grey", 'pink', 'violet', 'indigo',"brown"]
 
     for key in clusters:
         points = clusters[key]
@@ -51,7 +51,7 @@ else :
         output[key] = output_list
 
     index = 0
-    fig = plt.figure()
+    fig = plt.figure(foldername)
     ax = fig.add_subplot(111, projection='3d')
 
     for key in output:

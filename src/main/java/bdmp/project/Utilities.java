@@ -20,7 +20,6 @@ import java.util.Set;
 
 import net.sf.javaml.clustering.KMeans;
 import net.sf.javaml.core.Dataset;
-import net.sf.javaml.core.Instance;
 import net.sf.javaml.tools.data.FileHandler;
 
 public class Utilities {
@@ -124,10 +123,6 @@ public class Utilities {
 		pw.close();
 	}
 	
-	
-	
-	
-	
 	private static void writeCertainPointsToFile(List<PointKD> points, String filename) throws FileNotFoundException{
 		PrintWriter pw = new PrintWriter(new File(System.getProperty("user.home")+"/Documents/bdmpFiles/input/"+filename));
     	StringBuilder sb = new StringBuilder();
@@ -172,7 +167,6 @@ public class Utilities {
     				PointKD p = new PointKD(parts[0], parts.length-2, dimensions, Double.parseDouble(parts[parts.length-1]));
     				if(points.containsKey(parts[0])){
     					points.get(parts[0]).add(p);
-    					List<PointKD> a = points.get(parts[0]);
     				} else {
     					List<PointKD> templist = new ArrayList<PointKD>();
     					templist.add(p);
@@ -234,10 +228,25 @@ public class Utilities {
 		return 0;
 	}*/
 	
-	public static void createFolders(){
+	public static void initializeFolders() throws IOException{
 		File input = new File(System.getProperty("user.home")+"/Documents/bdmpFiles/input/");
 		input.mkdirs(); 
+		
 		File output = new File(System.getProperty("user.home")+"/Documents/bdmpFiles/output/");
+		if (output.isDirectory()){
+			File[] files = output.listFiles();
+			int numberOfFiles = files.length;
+			for (int i = 0; i < numberOfFiles; i++){
+				if(files[i].isDirectory()){
+					File[] subDirFiles = files[i].listFiles();
+					for (File file : subDirFiles){
+						file.delete();
+					}
+				} else {
+					files[i].delete();
+				}
+			}
+		}
 		output.mkdirs();
 	}
 	
