@@ -17,9 +17,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedSet;
+
+import org.apache.commons.math3.util.Pair;
 
 import net.sf.javaml.clustering.KMeans;
 import net.sf.javaml.core.Dataset;
+import net.sf.javaml.core.Instance;
 import net.sf.javaml.tools.data.FileHandler;
 
 public class Utilities {
@@ -195,7 +199,7 @@ public class Utilities {
     	return points;
     }
 	
-	public static void computeClustering(String filename, int k, String outputName) throws IOException{
+	public static Dataset[] computeClustering(String filename, int k, String outputName) throws IOException{
 		Dataset data = FileHandler.loadDataset(new File(System.getProperty("user.home")+"/Documents/bdmpFiles/input/"+filename), 0, ",");
     	data.remove(0); // remove headers
         KMeans km = new KMeans(k);
@@ -209,24 +213,111 @@ public class Utilities {
         }
         System.out.println("Clustering completed, check the results at the following path: \n" + 
         		System.getProperty("user.home")+"/Documents/bdmpFiles/output/"+outputName+"/");
+        return clusters;
 	}
 	
-	/*public static double computeRadius(Dataset clusters){
-		double centroid;
-		String input = new String();
-		StringBuffer sb = new StringBuffer();
-		for (Instance i : clusters){
-			sb.append(i.toString());
+	public static Map<String, Pair<double[],List<double[]>>> getCentroidsAndPoints(Dataset[] clusters){
+		Map<String, Pair<double[],List<double[]>>> centroids = new HashMap<String, Pair<double[],List<double[]>>>();
+		for (int i = 0; i < clusters.length; i++){
+			centroids.put("cluster"+i, new Pair<double[],List<double[]>>(computeCentroid(clusters[i]),getPointsFromDataset(clusters[i])));
 		}
-		input = sb.toString();
-		System.out.println(input);
-		input.replaceAll("\\}", "");
-		input.replaceAll("\\{", "");
-		input.replaceAll("\\]", "");
-		input.replaceAll("\\[", "");
-		System.out.println(input);
-		return 0;
-	}*/
+		return centroids;
+	}
+	
+	private static double[] computeCentroid(Dataset cluster){
+		double[] centroid; 
+		List<double[]> points = getPointsFromDataset(cluster);
+		
+		// Compute centroid
+		centroid = new double[points.get(0).length];
+		for (int i = 0; i < points.get(0).length; i++){
+			for(int j = 0; j < points.size(); j++){
+				centroid[i] += points.get(j)[i];
+			}
+			centroid[i] = centroid[i]/points.size();
+		}
+		return centroid;
+	}
+	
+	public static List<double[]> getPointsFromDataset(Dataset cluster){
+		Instance line;
+		double [] point;
+		SortedSet<Integer> keys;
+		int index = 0;
+		List<double[]> points = new ArrayList<>();
+		
+		// Get the points from the dataset
+		for(int i = 0; i < cluster.size(); i++){
+			line = cluster.get(i);
+			keys = line.keySet();
+			Iterator<Integer> it = keys.iterator();
+			point = new double[keys.size()];
+			index = 0;
+			while(it.hasNext()){
+				int key = it.next();
+				point[index] = line.get(key);
+				index++;
+
+			}
+			points.add(point);
+		}
+		return points; 
+	}
+	
+	public static double silhouetteScore(Map<String, Pair<double[], List<double[]>>> centroidsAndPoins){
+		double score = 0;
+		Set<String> keys = centroidsAndPoins.keySet();
+		Iterator<String> it = keys.iterator();
+		Map<String,double[]> centroids = new HashMap<>();
+		
+		// Store all the centroids in a map
+		while(it.hasNext()){
+			String key = it.next();
+			centroids.put(key, centroidsAndPoins.get(key).getFirst());
+		}
+		
+		it = keys.iterator();
+		int size = 0;
+		while(it.hasNext()){
+			String key = it.next();
+			double a = 0,b = 0;
+			a = computeAverageDistance(centroidsAndPoins.get(key).getSecond(), centroids.get(key));
+			b = bestAverageDistanceFromOtherCentroids(centroidsAndPoins.get(key).getSecond(), centroids, key);
+			score += (b-a)/(Math.max(a, b));
+			size++;
+		}
+		return score/size;
+	}
+	
+	private static double computeAverageDistance(List<double[]> points, double[] centroid){
+		double average = 0;
+		for (int i = 0; i < points.size(); i++){
+			average += distance(points.get(i), centroid);
+		}
+		return average/points.size();
+	}
+	
+	private static double bestAverageDistanceFromOtherCentroids(List<double[]> points, Map<String,double[]> centroids, String keyToAvoid){
+		double[] averages = new double[centroids.size()-1];
+		double minimumAverage = 0;
+		Set<String> keys = centroids.keySet();
+		Iterator<String> it = keys.iterator();
+		int index = 0;
+		while (it.hasNext()){
+			String key = it.next();
+			if(!key.equals(keyToAvoid)){
+				averages[index] = computeAverageDistance(points, centroids.get(key));
+				if (index == 0){
+					minimumAverage = averages[index];
+				} 
+				else if (averages[index] < minimumAverage){
+					minimumAverage = averages[index];
+				}
+				index++;
+			}
+		}
+		return minimumAverage;
+	}
 	
 	public static void initializeFolders() throws IOException{
 		File input = new File(System.getProperty("user.home")+"/Documents/bdmpFiles/input/");
@@ -250,6 +341,14 @@ public class Utilities {
 		output.mkdirs();
 	}
 	
+	private static double distance(double[] x1, double[] x2){
+		int dimension = x1.length;
+		double res = 0;
+		for (int i = 0; i < dimension; i++){
+			res += Math.pow((x1[i] - x2[i]), 2.0);
+		}
+		return Math.sqrt(res);
+	}
 	
 	
 	public static double roundTo2decimals(double num){

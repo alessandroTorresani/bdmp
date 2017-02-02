@@ -10,7 +10,7 @@ public class App
     public static void main( String[] args ) throws IOException
     {
     		Utilities.initializeFolders(); // Initialize input and output folders
-    		Prompt.sampleChoice();
+    		Prompt.sampleChoice(); 
     }
      
 }
