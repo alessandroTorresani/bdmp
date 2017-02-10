@@ -6,8 +6,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.UUID;
-
 import org.apache.commons.math3.distribution.PoissonDistribution;
 import org.apache.commons.math3.util.Pair;
 
@@ -24,16 +22,14 @@ public class Sampler {
 		List<PointKD> points = new ArrayList<PointKD>();
 		PointKD p1,p2;
 		int counter = 0;
-		String id;	// identifier that associates to each sample a list of uncertain points
 
 		while (counter < numberOfSamples){
-			id = UUID.randomUUID().toString();	// generate a random identifier
 			if(highDifference){
-				p1 = new PointKD(id, this.dimension, getRandomDimensions(minValue, maxValue) , 0.8);
-				p2 = new PointKD(id, this.dimension, getRandomDimensions(minValue, maxValue) , 0.2);
+				p1 = new PointKD(counter, this.dimension, getRandomDimensions(minValue, maxValue) , 0.8);
+				p2 = new PointKD(counter, this.dimension, getRandomDimensions(minValue, maxValue) , 0.2);
 			} else {
-				p1 = new PointKD(id, this.dimension, getRandomDimensions(minValue, maxValue) , 0.5);
-				p2 = new PointKD(id, this.dimension, getRandomDimensions(minValue, maxValue) , 0.5);
+				p1 = new PointKD(counter, this.dimension, getRandomDimensions(minValue, maxValue) , 0.5);
+				p2 = new PointKD(counter, this.dimension, getRandomDimensions(minValue, maxValue) , 0.5);
 			}
 			points.add(p1);
 			points.add(p2);
@@ -47,15 +43,13 @@ public class Sampler {
 		List<PointKD> points = new ArrayList<PointKD>();
 		PointKD p;
 		int numberOfUncertainPoints, counter = 0, uncertainCounter = 0;
-		String id;
 		
-		while (counter < numberOfSamples){
-			id = UUID.randomUUID().toString();	// generate a random identifier
+		while (counter < numberOfSamples){	
 			numberOfUncertainPoints = 1 + (int)(Math.random() * maxNumberOfUncertainPoints); // choose number of uncertain points
 			double[] probabilities = getRandomProbabilities(numberOfUncertainPoints);	// get a probability vector of size equal to numberOfUncertainPoints
 			uncertainCounter = 0;
 			while (uncertainCounter < numberOfUncertainPoints){	// generate the uncertainPoints using values inside the probabilities vector as uncertain points' probabilities
-				p = new PointKD(id, this.dimension, getRandomDimensions(minValue, maxValue), probabilities[uncertainCounter]);
+				p = new PointKD(counter, this.dimension, getRandomDimensions(minValue, maxValue), probabilities[uncertainCounter]);
 				points.add(p);
 				uncertainCounter++;
 			}
@@ -70,10 +64,8 @@ public class Sampler {
 		int counter = 0;
 		List<Pair<int[],Double>> samples;
 		PointKD p;
-		String id;
 		
 		while(counter < numberOfSamples){
-			id = UUID.randomUUID().toString();	// generate a random identifier
 			int maxNumberOfUncertainPoints = 1 + (int)(Math.random() * 10);
 			samples = normalizePoissonSample(getPoissonSample(lambdas.get(counter),maxNumberOfUncertainPoints));
 			for (int j = 0; j < samples.size(); j++){
@@ -81,7 +73,7 @@ public class Sampler {
 				for (int i = 0; i < uncertainDimensions.length; i++){	// Convert array of integers to array of doubles
 					uncertainDimensions[i] = samples.get(j).getFirst()[i];
 				}
-				p = new PointKD(id, this.dimension,  uncertainDimensions, samples.get(j).getSecond());
+				p = new PointKD(counter, this.dimension,  uncertainDimensions, samples.get(j).getSecond());
 				points.add(p);
 			}
 			counter++;
@@ -153,6 +145,12 @@ public class Sampler {
 		return dimensions;
 	}
 	
+	// ************************* Parallel ************************* //
+	
+	public void simpleSampleParallel(int numberOfSamples, int minValue, int maxValue, boolean highDifference){
+		
+	}
+	
 	// ************************* Experimental ************************* //
 	
 	// Experimental version of simple sample that stores gradually points into csv file
@@ -160,16 +158,14 @@ public class Sampler {
 		List<PointKD> points = new ArrayList<PointKD>();
 		PointKD p1,p2;
 		int counter = 0, writeCounter = 0;
-		String id;
 		Utilities.initializeFile("simpleSample"+this.dimension+"D.csv", this.dimension); // Initialize empty file
 		while (counter < numberOfSamples){
-			id = UUID.randomUUID().toString();	// generate a random identifier
 			if(highDifference){
-				p1 = new PointKD(id, this.dimension, getRandomDimensions(minValue, maxValue) , 0.8);
-				p2 = new PointKD(id, this.dimension, getRandomDimensions(minValue, maxValue) , 0.2);
+				p1 = new PointKD(counter, this.dimension, getRandomDimensions(minValue, maxValue) , 0.8);
+				p2 = new PointKD(counter, this.dimension, getRandomDimensions(minValue, maxValue) , 0.2);
 			} else {
-				p1 = new PointKD(id, this.dimension, getRandomDimensions(minValue, maxValue) , 0.5);
-				p2 = new PointKD(id, this.dimension, getRandomDimensions(minValue, maxValue) , 0.5);
+				p1 = new PointKD(counter, this.dimension, getRandomDimensions(minValue, maxValue) , 0.5);
+				p2 = new PointKD(counter, this.dimension, getRandomDimensions(minValue, maxValue) , 0.5);
 			}
 			points.add(p1);
 			points.add(p2);

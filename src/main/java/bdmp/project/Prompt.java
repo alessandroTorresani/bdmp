@@ -14,7 +14,7 @@ import net.sf.javaml.core.Dataset;
 public class Prompt {
 	static final int MINVALUE = 0;
 	static final int MAXVALUE = 100;
-	static final int POINTS = 4;
+	static final int POINTS = 10;
 	static final int MAXUNCERTAINPOINTS = 10;
 	
 	static void sampleChoice() throws IOException{
@@ -34,12 +34,11 @@ public class Prompt {
 		
 		// K-means algorithm variables
 		Pair<Dataset[],Dataset[]> clusters;
-		Dataset[] clustersMostProbable;
+		Dataset[] clustersMostProbable; 
 		Dataset[] clustersAverage;
-		Map<String, Pair<double[],List<double[]>>> centroidsAverage;
-		Map<String, Pair<double[],List<double[]>>> centroidsMostProbable;
+		Map<String, Pair<double[],List<double[]>>> centroidsAndPointsAverage;
+		Map<String, Pair<double[],List<double[]>>> centroidsAndPointsMostProbable;
 		
-	
 		System.out.println("Choose a sampling algorithm: \n \"s\" for simple sampling. "
 				+ "\n \"r\" for random sampling. \n \"p\" for Poisson sampling. \n \"n\""
 				+ " for skipping the sampling and reuse previuos calculated data");
@@ -48,65 +47,92 @@ public class Prompt {
 		while(samplingCycle){
 			switch (samplingChoice){
 				case "s" : 
+					// get points dimension, sampler and run average and most probable algorithm on uncertain data
 					dimension = askDimension(dimensionSCan);
 					sampler = new Sampler(dimension);
 					sampler.simpleSample(POINTS, MINVALUE, MAXVALUE, true); 
 					samplingCycle = false;
 					removeUncertainty("simpleSample", dimension);
-					clusters = runKMeans(askK(kScan));
+					
+					// run k-mean on average and most probable data sets
+					clusters = runKMeans(askK(kScan)); 
 					clustersAverage = clusters.getFirst();
 					clustersMostProbable = clusters.getSecond();
-					centroidsAverage = Utilities.getCentroidsAndPoints(clustersAverage);
-					centroidsMostProbable = Utilities.getCentroidsAndPoints(clustersMostProbable);
-					System.out.println("[Average] Silhouette score is: " + Utilities.silhouetteScore(centroidsAverage));
-					System.out.println("[Most Probable] Silhouette score is: " + Utilities.silhouetteScore(centroidsMostProbable));
+					
+					// get a map where to each key(cluster) is associated a list of points and the centroid of the cluster. Use this maps to compute 
+					// silhouetteScore of the cluster.
+					centroidsAndPointsAverage = Utilities.getCentroidsAndPoints(clustersAverage); 
+					centroidsAndPointsMostProbable = Utilities.getCentroidsAndPoints(clustersMostProbable);
+					System.out.println("[Average] Silhouette score is: " + Utilities.silhouetteScore(centroidsAndPointsAverage));
+					System.out.println("[Most Probable] Silhouette score is: " + Utilities.silhouetteScore(centroidsAndPointsMostProbable));
 				break;
 				case "r" : 
+					// get points dimension, sampler and run average and most probable algorithm on uncertain data
 					dimension = askDimension(dimensionSCan);
 					sampler = new Sampler(dimension);
 					sampler.randomSample(POINTS, MAXUNCERTAINPOINTS, MINVALUE, MAXVALUE);
 					samplingCycle = false;
 					removeUncertainty("randomSample", dimension);
+					
+					// run k-mean on average and most probable data sets
 					clusters = runKMeans(askK(kScan));
 					clustersAverage = clusters.getFirst();
 					clustersMostProbable = clusters.getSecond();
-					centroidsAverage = Utilities.getCentroidsAndPoints(clustersAverage);
-					centroidsMostProbable = Utilities.getCentroidsAndPoints(clustersMostProbable);
-					System.out.println("[Average] Silhouette score is: " + Utilities.silhouetteScore(centroidsAverage));
-					System.out.println("[Most Probable] Silhouette score is: " + Utilities.silhouetteScore(centroidsMostProbable));
+					
+					// get a map where to each key(cluster) is associated a list of points and the centroid of the cluster. Use this maps to compute 
+					// silhouetteScore of the cluster.
+					centroidsAndPointsAverage = Utilities.getCentroidsAndPoints(clustersAverage);
+					centroidsAndPointsMostProbable = Utilities.getCentroidsAndPoints(clustersMostProbable);
+					System.out.println("[Average] Silhouette score is: " + Utilities.silhouetteScore(centroidsAndPointsAverage));
+					System.out.println("[Most Probable] Silhouette score is: " + Utilities.silhouetteScore(centroidsAndPointsMostProbable));
 				break;
 				case "p" : 
+					// get points dimension, sampler and run average and most probable algorithm on uncertain data
 					dimension = askDimension(dimensionSCan);
 					sampler = new Sampler(dimension);
 					sampler.poissonSample(POINTS, Utilities.getRandomMeanVectors(dimension, POINTS, MINVALUE, MAXVALUE));
 					samplingCycle = false;
 					removeUncertainty("poissonSample", dimension);
+					
+					// run k-mean on average and most probable data sets
 					clusters = runKMeans(askK(kScan));
 					clustersAverage = clusters.getFirst();
 					clustersMostProbable = clusters.getSecond();
-					centroidsAverage = Utilities.getCentroidsAndPoints(clustersAverage);
-					centroidsMostProbable = Utilities.getCentroidsAndPoints(clustersMostProbable);
-					System.out.println("[Average] Silhouette score is: " + Utilities.silhouetteScore(centroidsAverage));
-					System.out.println("[Most Probable] Silhouette score is: " + Utilities.silhouetteScore(centroidsMostProbable));
+					
+					// get a map where to each key(cluster) is associated a list of points and the centroid of the cluster. Use this maps to compute 
+					// silhouetteScore of the cluster.
+					centroidsAndPointsAverage = Utilities.getCentroidsAndPoints(clustersAverage);
+					centroidsAndPointsMostProbable = Utilities.getCentroidsAndPoints(clustersMostProbable);
+					System.out.println("[Average] Silhouette score is: " + Utilities.silhouetteScore(centroidsAndPointsAverage));
+					System.out.println("[Most Probable] Silhouette score is: " + Utilities.silhouetteScore(centroidsAndPointsMostProbable));
 				break;
 				case "n" : 
+					// skip sampling stage, reuse previous "certain" data computed by average and most probable algorithms on the sampled data
 					samplingCycle = false;
+					
+					// run k-mean on average and most probable data sets
 					clusters = runKMeans(askK(kScan));
 					clustersAverage = clusters.getFirst();
 					clustersMostProbable = clusters.getSecond();
-					centroidsAverage = Utilities.getCentroidsAndPoints(clustersAverage);
-					centroidsMostProbable = Utilities.getCentroidsAndPoints(clustersMostProbable);
-					System.out.println("[Average] Silhouette score is: " + Utilities.silhouetteScore(centroidsAverage));
-					System.out.println("[Most Probable] Silhouette score is: " + Utilities.silhouetteScore(centroidsMostProbable));
+					
+					// get a map where to each key(cluster) is associated a list of points and the centroid of the cluster. Use this maps to compute 
+					// silhouetteScore of the cluster.
+					centroidsAndPointsAverage = Utilities.getCentroidsAndPoints(clustersAverage);
+					centroidsAndPointsMostProbable = Utilities.getCentroidsAndPoints(clustersMostProbable);
+					System.out.println("[Average] Silhouette score is: " + Utilities.silhouetteScore(centroidsAndPointsAverage));
+					System.out.println("[Most Probable] Silhouette score is: " + Utilities.silhouetteScore(centroidsAndPointsMostProbable));
 				break;
 			}
 		}
+		
+		// close the scanners
 		choiceScan.close();
 		dimensionSCan.close();
 		kScan.close();
 		
 	}
 	
+	// prompt points' dimension 
 	static int askDimension(Scanner scan){
 		int dimension = 2;
 		boolean dimensionCycle = true;
@@ -121,7 +147,7 @@ public class Prompt {
 			if (dimension >= 2 && dimension <= 100){
 				dimensionCycle = false;
 			} else {
-				System.err.println("Dimension must be an integer greater or equal to 2.");
+				System.err.println("Dimension must be an integer between 2 and 100.");
 			}
 		}
 		return dimension;

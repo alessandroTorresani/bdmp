@@ -112,8 +112,9 @@ public class Utilities {
 		}
 		sb.append("probability");
 		sb.append("\n");
-		while(!points.isEmpty()){
-			PointKD p = points.remove(0);
+		int index = 0;
+		while(index < points.size()){
+			PointKD p = points.get(index);
 			sb.append(p.getId());
 			sb.append(",");
 			for (int i = 0; i < p.getDimension(); i++){ // Cycle all over dimensions
@@ -122,6 +123,7 @@ public class Utilities {
 			}
 			sb.append(p.getProb());
 			sb.append("\n");
+			index++;
 		}
 		pw.write(sb.toString());
 		pw.close();
@@ -168,7 +170,7 @@ public class Utilities {
     				for (int i = 0; i < parts.length-2; i++){
     					dimensions[i] = Double.parseDouble(parts[1+i]);
     				}
-    				PointKD p = new PointKD(parts[0], parts.length-2, dimensions, Double.parseDouble(parts[parts.length-1]));
+    				PointKD p = new PointKD(Integer.parseInt(parts[0]), parts.length-2, dimensions, Double.parseDouble(parts[parts.length-1]));
     				if(points.containsKey(parts[0])){
     					points.get(parts[0]).add(p);
     				} else {
@@ -324,7 +326,7 @@ public class Utilities {
 		input.mkdirs(); 
 		
 		File output = new File(System.getProperty("user.home")+"/Documents/bdmpFiles/output/");
-		if (output.isDirectory()){
+		if (output.isDirectory()){ // If output folder contains elements remove them
 			File[] files = output.listFiles();
 			int numberOfFiles = files.length;
 			for (int i = 0; i < numberOfFiles; i++){

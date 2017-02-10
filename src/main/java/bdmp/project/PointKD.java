@@ -1,13 +1,13 @@
 package bdmp.project;
 
 public class PointKD {
-	private String id;
+	private int id;
 	private double[] dimensions;
 	private int dimension;
 	private double prob;
 	
 
-	public PointKD(String id, int dimension, double[] dimensions,double prob) {
+	public PointKD(int id, int dimension, double[] dimensions,double prob){
 		this.setId(id);
 		this.setProb(prob);
 		this.setDimension(dimension);
@@ -30,11 +30,11 @@ public class PointKD {
 		this.dimension = dimension;
 	}
 
-	public String getId() {
+	public int getId() {
 		return id;
 	}
 
-	public void setId(String id) {
+	public void setId(int id) {
 		this.id = id;
 	}
 
