@@ -36,7 +36,7 @@ public class SamplerParallel  {
 		}
 	};
 	
-	static private PairFunction <Tuple2<String,Iterable<Iterable<Double>>>, String, Iterable<Iterable<Double>>> addProbability = new PairFunction<Tuple2<String,Iterable<Iterable<Double>>>, String, Iterable<Iterable<Double>>>() {
+	static private PairFunction <Tuple2<String,Iterable<Iterable<Double>>>, String, Iterable<Iterable<Double>>> addProbabilityDiff = new PairFunction<Tuple2<String,Iterable<Iterable<Double>>>, String, Iterable<Iterable<Double>>>() {
 		
 		public Tuple2<String, Iterable<Iterable<Double>>> call(Tuple2<String, Iterable<Iterable<Double>>> t)
 				throws Exception {
@@ -63,6 +63,37 @@ public class SamplerParallel  {
 			res.add(list1);
 			res.add(list2);
 			
+			return new Tuple2<String, Iterable<Iterable<Double>>>(t._1, res);
+		}
+	};
+	
+	static private PairFunction <Tuple2<String,Iterable<Iterable<Double>>>, String, Iterable<Iterable<Double>>> addProbability = new PairFunction<Tuple2<String,Iterable<Iterable<Double>>>, String, Iterable<Iterable<Double>>>() {
+
+		public Tuple2<String, Iterable<Iterable<Double>>> call(Tuple2<String, Iterable<Iterable<Double>>> t)
+				throws Exception {
+			List<Iterable<Double>> itList = new ArrayList<Iterable<Double>>();
+			List<Double> list1 = new ArrayList<Double>();
+			List<Double> list2 = new ArrayList<Double>();
+			Iterator<Iterable<Double>> it = t._2().iterator();
+			while(it.hasNext()){
+				itList.add(it.next()); // add two iterators of the lists
+			}
+			Iterator<Double> it1 = itList.get(0).iterator(); // get the iterators of the list 1
+			Iterator<Double> it2 = itList.get(1).iterator(); // get the iterators of the list 2
+
+			while(it1.hasNext()){
+				list1.add(it1.next());
+			}
+			list1.add(0.5); // add probability
+
+			while(it2.hasNext()){
+				list2.add(it2.next());
+			}
+			list2.add(0.5);
+			List<Iterable<Double>> res = new ArrayList<>();
+			res.add(list1);
+			res.add(list2);
+
 			return new Tuple2<String, Iterable<Iterable<Double>>>(t._1, res);
 		}
 	};
@@ -141,12 +172,17 @@ public class SamplerParallel  {
 		//System.out.println(pairgrouped.groupByKey().collect()); //
 		
 		/*
-		 * 
 		 * GOAL: (KEY, [[x1,x2,p1],[y1,y2,p2]]) 
 		 */
 		JavaPairRDD<String, Iterable<Iterable<Double>>> unionGrouped = pairgrouped.groupByKey();
-		System.out.println(unionGrouped.collect());
-		JavaPairRDD<String, Iterable<Iterable<Double>>> unionGroupedWithProbability = unionGrouped.mapToPair(addProbability);
+		//System.out.println(unionGrouped.collect());
+		
+		JavaPairRDD<String, Iterable<Iterable<Double>>> unionGroupedWithProbability;
+		if (highDifference){ 
+			unionGroupedWithProbability = unionGrouped.mapToPair(addProbabilityDiff);
+		} else {
+			unionGroupedWithProbability = unionGrouped.mapToPair(addProbability);
+		}
 		
 		//System.out.println("Res:" );
 		//System.out.println(uWithProb.collect());
@@ -155,7 +191,7 @@ public class SamplerParallel  {
 		
 		//headers
 		StringBuilder sb = new StringBuilder();
-		sb.append("id,");
+		sb.append("identifier,");
 		for(int i=1; i<dimension+1;i++){
 			sb.append("d"+i+",");
 		}
@@ -165,6 +201,7 @@ public class SamplerParallel  {
 		//System.out.println(output.collect());
 		headers.union(output).repartition(1).saveAsTextFile(System.getProperty("user.home")+"/Documents/bdmpFiles/input/spark");
 		//run a script that copy "part00000" file to input/simpleSampleParalle and delete spark folder
+		Utilities.handleSparkOutput("SimpleSamplePar"+dimension+"D.csv");
 		System.out.println("finished");
 	}
 	

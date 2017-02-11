@@ -43,6 +43,10 @@ public class Utilities {
     	return means;
 	}
 	
+	/*
+	 * Takes a list of uncertain points and returns a list of certain points removing the probabilities with the expected mean
+	 * of the random variable
+	 */
 	public static void computeExpectedMeans(Map<String, List<PointKD>> points) throws FileNotFoundException{
     	List<PointKD> uncertainPoints = new ArrayList<PointKD>();
     	Set<String> keys = points.keySet();
@@ -72,6 +76,9 @@ public class Utilities {
 		return roundTo2decimals(res);
 	}
 	
+	/*
+	 * Takes a list of uncertain points and returns a list of certain points taking only the most probable points
+	 */
 	public static void chooseMostProbablePoints(Map<String, List<PointKD>> points) throws FileNotFoundException{
 		List<PointKD> uncertainPoints = new ArrayList<PointKD>();
     	Set<String> keys = points.keySet();
@@ -85,9 +92,11 @@ public class Utilities {
     		mostProbablePoints.add(bestPoint);
     	}
     	writeCertainPointsToFile(mostProbablePoints, "mostProbableCertainSet.csv");
-    	
 	}
 	
+	/*
+	 * Among the values of a list of uncertain points, returns the most probable one 
+	 */
 	private static PointKD chooseMostProbablePoint(List<PointKD> uncertainPoints){
 		double bestProbability = uncertainPoints.get(0).getProb();
 		PointKD bestPoint = uncertainPoints.get(0);
@@ -98,12 +107,17 @@ public class Utilities {
 			}
 		}
 		return bestPoint;
-		
 	}
 	
+	/*
+	 * Writes the content of a list of uncertain points to the disk at path $HOME/Documents/bdmpFiles/input/filename
+	 * @param filename - name of the file where points are written
+	 */
 	public static void writeUncertainPointsToFile(List<PointKD> points, String filename) throws FileNotFoundException{
 		PrintWriter pw = new PrintWriter(new File(System.getProperty("user.home")+"/Documents/bdmpFiles/input/"+filename));
 		StringBuilder sb = new StringBuilder();
+		
+		// write headers
 		sb.append("identifier");
 		sb.append(",");
 		for(int i = 0; i < points.get(0).getDimension(); i++){
@@ -112,6 +126,7 @@ public class Utilities {
 		}
 		sb.append("probability");
 		sb.append("\n");
+		
 		int index = 0;
 		while(index < points.size()){
 			PointKD p = points.get(index);
@@ -129,6 +144,10 @@ public class Utilities {
 		pw.close();
 	}
 	
+	/*
+	 * Writes the content of a list of certain points to the disk at path $HOME/Documents/bdmpFiles/input/filename
+	 * @param filename - name of the file where points are written
+	 */
 	private static void writeCertainPointsToFile(List<PointKD> points, String filename) throws FileNotFoundException{
 		PrintWriter pw = new PrintWriter(new File(System.getProperty("user.home")+"/Documents/bdmpFiles/input/"+filename));
     	StringBuilder sb = new StringBuilder();
@@ -153,12 +172,16 @@ public class Utilities {
     	pw.close();
     }
 	
-	
-	
-	public static Map<String, List<PointKD>> readCsvFile(String filename){
+	/*
+	 * Reads the uncertain points from a csv file located at $HOME//Documents/bdmpFiles/input/filename
+	 * @param filename - name of the file where points are read
+	 */
+	public static Map<String, List<PointKD>> loadSamples(String filename){
     	final String COMMA_DELIMITER = ",";
     	BufferedReader br = null;
-    	Map<String, List<PointKD>> points = new HashMap<String, List<PointKD>>();	// associate to each key(certain point) a list of uncertain points (uncertain points) 
+    	
+    	// associate to each key(identifier) a list of uncertain points 
+    	Map<String, List<PointKD>> points = new HashMap<String, List<PointKD>>();
     	try {
     		br = new BufferedReader(new FileReader(System.getProperty("user.home")+"/Documents/bdmpFiles/input/"+filename));
     		String line="";
@@ -166,14 +189,14 @@ public class Utilities {
     		while((line = br.readLine()) != null){	// Iterate until there are lines to read
     			String[] parts = line.split(COMMA_DELIMITER);
     			if (parts.length > 0){
-    				double[] dimensions = new double[parts.length-2];
+    				double[] dimensions = new double[parts.length-2]; // -1 for identifier, -1 for probability
     				for (int i = 0; i < parts.length-2; i++){
-    					dimensions[i] = Double.parseDouble(parts[1+i]);
+    					dimensions[i] = Double.parseDouble(parts[1+i]); // start from index 1 because at index 0 there is the identifier
     				}
     				PointKD p = new PointKD(Integer.parseInt(parts[0]), parts.length-2, dimensions, Double.parseDouble(parts[parts.length-1]));
-    				if(points.containsKey(parts[0])){
+    				if(points.containsKey(parts[0])){ // if map contains already the key(parts[0]), add the point to key's associated list
     					points.get(parts[0]).add(p);
-    				} else {
+    				} else { // otherwise add a new key a create a new list
     					List<PointKD> templist = new ArrayList<PointKD>();
     					templist.add(p);
     					points.put(parts[0], templist);
@@ -357,6 +380,25 @@ public class Utilities {
 		DecimalFormat df = new DecimalFormat("#.##");
     	double rounded = Double.parseDouble(df.format(num).replaceAll(",", "."));
 		return rounded;
+	}
+	
+	/*
+	 * Copy the output of spark computation to the input folder
+	 */
+	public static void handleSparkOutput(String filename){
+		File spark = new File(System.getProperty("user.home")+"/Documents/bdmpFiles/input/spark");
+		File dest = new File(System.getProperty("user.home")+"/Documents/bdmpFiles/input/"+filename);
+		if (spark.isDirectory()){
+			File[] files = spark.listFiles();
+			for (File file : files){
+				if(file.getName().equals("part-00000")){ // correct file, copy in input folder
+					file.renameTo(dest);
+				} else { // other spark's files, delete them
+					file.delete(); 
+				}
+			}
+			spark.delete();
+		}
 	}
 	
 	

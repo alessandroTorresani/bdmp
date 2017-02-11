@@ -154,8 +154,8 @@ public class Prompt {
 	}
 	
 	static void removeUncertainty(String filename, int dimension) throws FileNotFoundException{
-		Utilities.computeExpectedMeans(Utilities.readCsvFile(filename+dimension+"D.csv"));
-		Utilities.chooseMostProbablePoints(Utilities.readCsvFile(filename+dimension+"D.csv"));
+		Utilities.computeExpectedMeans(Utilities.loadSamples(filename+dimension+"D.csv"));
+		Utilities.chooseMostProbablePoints(Utilities.loadSamples(filename+dimension+"D.csv"));
 	}
 	
 	static int askK(Scanner scan){
